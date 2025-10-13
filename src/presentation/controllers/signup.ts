@@ -5,7 +5,7 @@ import { httpResponse } from "../protocols/http";
 
 export class SignupController {
   handle(request: httpRequest): httpResponse {
-    const requiredParams = ["name", "email"];
+    const requiredParams = ["name", "email", "password", "confirmPassword"];
     for (const param of requiredParams) {
       if (!request.body[param]) {
         return badRequest(new MissingParamsError(param));
