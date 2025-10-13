@@ -12,6 +12,9 @@ const config: Config = {
     "!src/**/*.spec.ts",
     "!src/**/*.test.ts",
   ],
+  transform: {
+    "^.+\\.ts$": "ts-jest",
+  },
 };
 
 export default config;
