@@ -1,7 +1,6 @@
 import { InvalidParamsError } from "../error/invalid-params-error";
 import { MissingParamsError } from "../error/missing-params-error";
-import { ServerError } from "../error/server-error";
-import { badRequest } from "../helpers/http-helper";
+import { badRequest, serverError } from "../helpers/http-helper";
 import { Controller } from "../protocols/controller";
 import { EmailValidator } from "../protocols/email-validator";
 import { httpRequest, httpResponse } from "../protocols/http";
@@ -22,10 +21,7 @@ export class SignupController implements Controller {
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      return {
-        status: 500,
-        body: new ServerError(),
-      };
+      return serverError();
     }
     return {
       status: 200,
