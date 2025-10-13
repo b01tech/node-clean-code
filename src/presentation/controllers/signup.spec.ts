@@ -14,4 +14,17 @@ describe("SignupController", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new Error("No name provided"));
   });
+  test("Should return 400 if no email is provided", async () => {
+    const signupController = new SignupController();
+    const request = {
+      body: {
+        name: "Test User",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(new Error("No email provided"));
+  });
 });
