@@ -87,6 +87,21 @@ describe("SignupController", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("confirmPassword"));
   });
+  test("Should return 400 if password and confirmPassword do not match", async () => {
+    const emailValidator = createEmailValidator();
+    const signupController = createSignupController(emailValidator);
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test@test.com",
+        password: "123456",
+        confirmPassword: "654321",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(new InvalidParamsError("confirmPassword"));
+  });
   test("Should return 400 if an invalid email is provided", async () => {
     const isEmailValid = false;
     const emailValidator = createEmailValidator(isEmailValid);

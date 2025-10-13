@@ -21,6 +21,9 @@ export class SignupController implements Controller {
       if (!isValidEmail) {
         return badRequest(new InvalidParamsError("email"));
       }
+      if (request.body.password !== request.body.confirmPassword) {
+        return badRequest(new InvalidParamsError("confirmPassword"));
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return serverError();
