@@ -1,3 +1,4 @@
+import { MissingParamsError } from "../error/missing-params-error";
 import { httpRequest } from "../protocols/http";
 import { httpResponse } from "../protocols/http";
 
@@ -6,13 +7,20 @@ export class SignupController {
     if (!request.body.name) {
       return {
         status: 400,
-        body: new Error("No name provided"),
+        body: new MissingParamsError("name"),
       };
     }
     if (!request.body.email) {
       return {
         status: 400,
-        body: new Error("No email provided"),
+        body: new MissingParamsError("email"),
+      };
+    } else {
+      return {
+        status: 200,
+        body: {
+          message: "Success",
+        },
       };
     }
   }
