@@ -1,7 +1,28 @@
+import { InvalidParamsError } from "../error/invalid-params-error";
 import { MissingParamsError } from "../error/missing-params-error";
+import { EmailValidator } from "../protocols/email-validator";
 import { SignupController } from "./signup";
 
-const createSignupController = () => new SignupController();
+class EmailValidatorStub implements EmailValidator {
+  constructor(private returnIsValid: boolean) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isValid(email: string): boolean {
+    return this.returnIsValid;
+  }
+}
+
+const createEmailValidator = (
+  returnIsValid: boolean = true
+): EmailValidator => {
+  return new EmailValidatorStub(returnIsValid);
+};
+
+const createSignupController = (
+  returnIsValid: boolean = true
+): SignupController => {
+  const emailValidatorStub = createEmailValidator(returnIsValid);
+  return new SignupController(emailValidatorStub);
+};
 
 describe("SignupController", () => {
   test("Should return 400 if no name is provided", async () => {
@@ -55,5 +76,20 @@ describe("SignupController", () => {
     const response = signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("confirmPassword"));
+  });
+  test("Should return 400 if an invalid email is provided", async () => {
+    const isEmailValid = false;
+    const signupController = createSignupController(isEmailValid);
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test.com",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(new InvalidParamsError("email"));
   });
 });
