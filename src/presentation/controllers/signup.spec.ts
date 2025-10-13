@@ -12,5 +12,6 @@ describe("SignupController", () => {
     };
     const response = signupController.handle(request);
     expect(response.status).toBe(400);
+    expect(response.body).toEqual(new Error("No name provided"));
   });
 });
