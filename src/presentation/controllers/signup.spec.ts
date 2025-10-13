@@ -1,5 +1,5 @@
 import { InvalidParamsError, MissingParamsError } from "../error";
-import { EmailValidator } from "../protocols/email-validator";
+import { EmailValidator } from "../protocols";
 import { SignupController } from "./signup";
 
 class EmailValidatorStub implements EmailValidator {

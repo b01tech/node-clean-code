@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export interface httpResponse {
+export interface HttpResponse {
   status: number;
   body: any;
 }
 
-export interface httpRequest {
+export interface HttpRequest {
   body?: any;
 }

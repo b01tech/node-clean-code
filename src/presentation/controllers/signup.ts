@@ -1,12 +1,15 @@
 import { InvalidParamsError, MissingParamsError } from "../error";
 import { badRequest, serverError } from "../helpers/http-helper";
-import { Controller } from "../protocols/controller";
-import { EmailValidator } from "../protocols/email-validator";
-import { httpRequest, httpResponse } from "../protocols/http";
+import {
+  Controller,
+  HttpRequest,
+  HttpResponse,
+  EmailValidator,
+} from "../protocols";
 
 export class SignupController implements Controller {
   constructor(private readonly emailValidator: EmailValidator) {}
-  handle(request: httpRequest): httpResponse {
+  handle(request: HttpRequest): HttpResponse {
     try {
       const requiredParams = ["name", "email", "password", "confirmPassword"];
       for (const param of requiredParams) {
