@@ -1,4 +1,4 @@
-import { InvalidParamsError, MissingParamsError } from "../error";
+import { InvalidParamsError, MissingParamsError, ServerError } from "../error";
 import { EmailValidator } from "../protocols";
 import { SignupController } from "./signup";
 
@@ -9,6 +9,14 @@ class EmailValidatorStub implements EmailValidator {
     return this.returnIsValid;
   }
 }
+const createEmailValidatorWithError = (): EmailValidator => {
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isValid: (_email: string): boolean => {
+      throw new ServerError();
+    },
+  };
+};
 
 const createEmailValidator = (
   returnIsValid: boolean = true
@@ -17,15 +25,15 @@ const createEmailValidator = (
 };
 
 const createSignupController = (
-  returnIsValid: boolean = true
+  emailValidator: EmailValidator
 ): SignupController => {
-  const emailValidatorStub = createEmailValidator(returnIsValid);
-  return new SignupController(emailValidatorStub);
+  return new SignupController(emailValidator);
 };
 
 describe("SignupController", () => {
   test("Should return 400 if no name is provided", async () => {
-    const signupController = createSignupController();
+    const emailValidator = createEmailValidator();
+    const signupController = createSignupController(emailValidator);
     const request = {
       body: {
         email: "test@test.com",
@@ -38,7 +46,8 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("name"));
   });
   test("Should return 400 if no email is provided", async () => {
-    const signupController = createSignupController();
+    const emailValidator = createEmailValidator();
+    const signupController = createSignupController(emailValidator);
     const request = {
       body: {
         name: "Test User",
@@ -51,7 +60,8 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("email"));
   });
   test("Should return 400 if no password is provided", async () => {
-    const signupController = createSignupController();
+    const emailValidator = createEmailValidator();
+    const signupController = createSignupController(emailValidator);
     const request = {
       body: {
         name: "Test User",
@@ -64,7 +74,8 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("password"));
   });
   test("Should return 400 if no confirmPassword is provided", async () => {
-    const signupController = createSignupController();
+    const emailValidator = createEmailValidator();
+    const signupController = createSignupController(emailValidator);
     const request = {
       body: {
         name: "Test User",
@@ -78,7 +89,8 @@ describe("SignupController", () => {
   });
   test("Should return 400 if an invalid email is provided", async () => {
     const isEmailValid = false;
-    const signupController = createSignupController(isEmailValid);
+    const emailValidator = createEmailValidator(isEmailValid);
+    const signupController = createSignupController(emailValidator);
     const request = {
       body: {
         name: "Test User",
@@ -90,5 +102,20 @@ describe("SignupController", () => {
     const response = signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new InvalidParamsError("email"));
+  });
+  test("Should return 500 if emailValidator throws", async () => {
+    const emailValidator = createEmailValidatorWithError();
+    const signupController = createSignupController(emailValidator);
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test.com",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual(new ServerError());
   });
 });
