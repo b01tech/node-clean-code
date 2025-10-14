@@ -9,3 +9,8 @@ export const serverError = (): HttpResponse => ({
   status: 500,
   body: new ServerError(),
 });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const created = (data: any): HttpResponse => ({
+  status: 201,
+  body: data,
+});

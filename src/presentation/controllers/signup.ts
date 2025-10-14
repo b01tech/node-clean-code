@@ -1,6 +1,6 @@
 import { AddAccount } from "../../domain/usecases/add-account";
 import { InvalidParamsError, MissingParamsError } from "../error";
-import { badRequest, serverError } from "../helpers/http-helper";
+import { badRequest, created, serverError } from "../helpers/http-helper";
 import {
   Controller,
   HttpRequest,
@@ -34,10 +34,7 @@ export class SignupController implements Controller {
         password: request.body.password,
       });
       this.addAccount.add(account);
-      return {
-        status: 201,
-        body: account,
-      };
+      return created(account);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return serverError();
