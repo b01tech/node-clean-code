@@ -177,4 +177,21 @@ describe("SignupController", () => {
       password: "123456",
     });
   });
+  test("Should return 500 if addAccount throws", async () => {
+    const { signupController, addAccount: addAccountStub } = setupSignup();
+    jest.spyOn(addAccountStub, "add").mockImplementationOnce(() => {
+      throw new ServerError();
+    });
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test.com",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual(new ServerError());
+  });
 });
