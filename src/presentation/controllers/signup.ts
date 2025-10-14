@@ -13,7 +13,7 @@ export class SignupController implements Controller {
     private readonly emailValidator: EmailValidator,
     private readonly addAccount: AddAccount
   ) {}
-  handle(request: HttpRequest): HttpResponse {
+  async handle(request: HttpRequest): Promise<HttpResponse> {
     try {
       const requiredParams = ["name", "email", "password", "confirmPassword"];
       for (const param of requiredParams) {
@@ -28,12 +28,11 @@ export class SignupController implements Controller {
       if (request.body.password !== request.body.confirmPassword) {
         return badRequest(new InvalidParamsError("confirmPassword"));
       }
-      const account = this.addAccount.add({
+      const account = await this.addAccount.add({
         name: request.body.name,
         email: request.body.email,
         password: request.body.password,
       });
-      this.addAccount.add(account);
       return created(account);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {

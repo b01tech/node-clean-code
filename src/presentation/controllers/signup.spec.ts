@@ -14,14 +14,14 @@ class EmailValidatorStub implements EmailValidator {
 
 const createAddAccount = (): AddAccount => {
   class AddAccountStub implements AddAccount {
-    add(account: AddAccountModel): AccountModel {
+    async add(account: AddAccountModel): Promise<AccountModel> {
       const fakeAccount = {
         id: "123",
         name: account.name,
         email: account.email,
         password: account.password,
       };
-      return fakeAccount;
+      return new Promise((resolve) => resolve(fakeAccount));
     }
   }
   return new AddAccountStub();
@@ -67,7 +67,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("name"));
   });
@@ -80,7 +80,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("email"));
   });
@@ -93,7 +93,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("password"));
   });
@@ -106,7 +106,7 @@ describe("SignupController", () => {
         password: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new MissingParamsError("confirmPassword"));
   });
@@ -120,7 +120,7 @@ describe("SignupController", () => {
         confirmPassword: "654321",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new InvalidParamsError("confirmPassword"));
   });
@@ -137,7 +137,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(400);
     expect(response.body).toEqual(new InvalidParamsError("email"));
   });
@@ -155,7 +155,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(500);
     expect(response.body).toEqual(new ServerError());
   });
@@ -190,7 +190,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(500);
     expect(response.body).toEqual(new ServerError());
   });
@@ -204,7 +204,7 @@ describe("SignupController", () => {
         confirmPassword: "123456",
       },
     };
-    const response = signupController.handle(request);
+    const response = await signupController.handle(request);
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
       id: "123",
