@@ -1,3 +1,5 @@
+import { AccountModel } from "../../domain/models/account";
+import { AddAccount, AddAccountModel } from "../../domain/usecases/add-account";
 import { InvalidParamsError, MissingParamsError, ServerError } from "../error";
 import { EmailValidator } from "../protocols";
 import { SignupController } from "./signup";
@@ -9,13 +11,20 @@ class EmailValidatorStub implements EmailValidator {
     return this.returnIsValid;
   }
 }
-const createEmailValidatorWithError = (): EmailValidator => {
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isValid: (_email: string): boolean => {
-      throw new ServerError();
-    },
-  };
+
+const createAddAccount = (): AddAccount => {
+  class AddAccountStub implements AddAccount {
+    add(account: AddAccountModel): AccountModel {
+      const fakeAccount = {
+        id: "123",
+        name: account.name,
+        email: account.email,
+        password: account.password,
+      };
+      return fakeAccount;
+    }
+  }
+  return new AddAccountStub();
 };
 
 const createEmailValidator = (
@@ -25,15 +34,32 @@ const createEmailValidator = (
 };
 
 const createSignupController = (
-  emailValidator: EmailValidator
+  emailValidator: EmailValidator,
+  addAccount: AddAccount
 ): SignupController => {
-  return new SignupController(emailValidator);
+  return new SignupController(emailValidator, addAccount);
+};
+
+interface SignupControllerParams {
+  signupController: SignupController;
+  emailValidator: EmailValidator;
+  addAccount: AddAccount;
+}
+
+const setupSignup = (): SignupControllerParams => {
+  const emailValidator = createEmailValidator();
+  const addAccount = createAddAccount();
+  const signupController = createSignupController(emailValidator, addAccount);
+  return {
+    signupController,
+    emailValidator,
+    addAccount,
+  };
 };
 
 describe("SignupController", () => {
   test("Should return 400 if no name is provided", async () => {
-    const emailValidator = createEmailValidator();
-    const signupController = createSignupController(emailValidator);
+    const { signupController } = setupSignup();
     const request = {
       body: {
         email: "test@test.com",
@@ -46,8 +72,7 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("name"));
   });
   test("Should return 400 if no email is provided", async () => {
-    const emailValidator = createEmailValidator();
-    const signupController = createSignupController(emailValidator);
+    const { signupController } = setupSignup();
     const request = {
       body: {
         name: "Test User",
@@ -60,8 +85,7 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("email"));
   });
   test("Should return 400 if no password is provided", async () => {
-    const emailValidator = createEmailValidator();
-    const signupController = createSignupController(emailValidator);
+    const { signupController } = setupSignup();
     const request = {
       body: {
         name: "Test User",
@@ -74,8 +98,7 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("password"));
   });
   test("Should return 400 if no confirmPassword is provided", async () => {
-    const emailValidator = createEmailValidator();
-    const signupController = createSignupController(emailValidator);
+    const { signupController } = setupSignup();
     const request = {
       body: {
         name: "Test User",
@@ -88,8 +111,7 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new MissingParamsError("confirmPassword"));
   });
   test("Should return 400 if password and confirmPassword do not match", async () => {
-    const emailValidator = createEmailValidator();
-    const signupController = createSignupController(emailValidator);
+    const { signupController } = setupSignup();
     const request = {
       body: {
         name: "Test User",
@@ -104,8 +126,9 @@ describe("SignupController", () => {
   });
   test("Should return 400 if an invalid email is provided", async () => {
     const isEmailValid = false;
-    const emailValidator = createEmailValidator(isEmailValid);
-    const signupController = createSignupController(emailValidator);
+    const { signupController, emailValidator: emailValidatorStub } =
+      setupSignup();
+    jest.spyOn(emailValidatorStub, "isValid").mockReturnValueOnce(isEmailValid);
     const request = {
       body: {
         name: "Test User",
@@ -119,8 +142,11 @@ describe("SignupController", () => {
     expect(response.body).toEqual(new InvalidParamsError("email"));
   });
   test("Should return 500 if emailValidator throws", async () => {
-    const emailValidator = createEmailValidatorWithError();
-    const signupController = createSignupController(emailValidator);
+    const { signupController, emailValidator: emailValidatorStub } =
+      setupSignup();
+    jest.spyOn(emailValidatorStub, "isValid").mockImplementationOnce(() => {
+      throw new ServerError();
+    });
     const request = {
       body: {
         name: "Test User",
@@ -132,5 +158,23 @@ describe("SignupController", () => {
     const response = signupController.handle(request);
     expect(response.status).toBe(500);
     expect(response.body).toEqual(new ServerError());
+  });
+  test("Should call addAccount with correct values", async () => {
+    const { signupController, addAccount: addAccountStub } = setupSignup();
+    const addSpy = jest.spyOn(addAccountStub, "add");
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test@test.com",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    signupController.handle(request);
+    expect(addSpy).toHaveBeenCalledWith({
+      name: "Test User",
+      email: "test@test.com",
+      password: "123456",
+    });
   });
 });
