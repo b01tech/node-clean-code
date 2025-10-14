@@ -36,9 +36,7 @@ export class SignupController implements Controller {
       this.addAccount.add(account);
       return {
         status: 201,
-        body: {
-          message: "Success",
-        },
+        body: account,
       };
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {

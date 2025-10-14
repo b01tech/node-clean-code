@@ -194,4 +194,23 @@ describe("SignupController", () => {
     expect(response.status).toBe(500);
     expect(response.body).toEqual(new ServerError());
   });
+  test("Should return 201 if valid data is provided", async () => {
+    const { signupController } = setupSignup();
+    const request = {
+      body: {
+        name: "Test User",
+        email: "test@test.com",
+        password: "123456",
+        confirmPassword: "123456",
+      },
+    };
+    const response = signupController.handle(request);
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({
+      id: "123",
+      name: "Test User",
+      email: "test@test.com",
+      password: "123456",
+    });
+  });
 });
